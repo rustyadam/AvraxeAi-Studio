@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default safety net: reject everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll(['name', 'ownerId', 'createdAt', 'updatedAt'])
+        && data.name is string && data.name.size() <= 128
+        && data.ownerId is string && data.ownerId == request.auth.uid
+        && (!('genre' in data) || (data.genre is string && data.genre.size() <= 128))
+        && (!('mood' in data) || (data.mood is string && data.mood.size() <= 256))
+        && (!('keySignature' in data) || (data.keySignature is string && data.keySignature.size() <= 32))
+        && (!('bpm' in data) || (data.bpm is int && data.bpm >= 20 && data.bpm <= 250))
+        && (!('masterVolume' in data) || (data.masterVolume is number && data.masterVolume >= 0.0 && data.masterVolume <= 1.2))
+        && (!('reverbMix' in data) || (data.reverbMix is number && data.reverbMix >= 0.0 && data.reverbMix <= 1.0))
+        && (!('vocalEnhancement' in data) || data.vocalEnhancement is bool)
+        && (!('tracks' in data) || (data.tracks is list && data.tracks.size() <= 20))
+        && (!('midiSequences' in data) || data.midiSequences is map)
+        && (!('agentDialogue' in data) || (data.agentDialogue is list && data.agentDialogue.size() <= 100))
+        && (!('humMIDI' in data) || (data.humMIDI is list && data.humMIDI.size() <= 128));
+    }
+
+    // Match sessions collection
+    match /sessions/{sessionId} {
+      allow get: if isOwner(resource.data.ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      
+      allow create: if isEmailVerified()
+        && isValidId(sessionId)
+        && isValidSession(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+        
+      allow update: if isEmailVerified()
+        && isValidId(sessionId)
+        && isOwner(resource.data.ownerId)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && isValidSession(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+        
+      allow delete: if isOwner(resource.data.ownerId);
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Nashville Studio AI Session Producer",
+  "description": "An interactive, pro-grade studio session DAW controller and AI co-producer.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

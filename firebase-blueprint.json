@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "Session": {
+      "title": "Session",
+      "description": "A DAW session holding the current state of tracks, mixer volumes, MIDI sequences, dialogue history, and audio settings.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the DAW session"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the user who owns this session"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Current active aesthetic genre"
+        },
+        "mood": {
+          "type": "string",
+          "description": "Current active mood modulation description"
+        },
+        "keySignature": {
+          "type": "string",
+          "description": "Active key signature of the session"
+        },
+        "bpm": {
+          "type": "integer",
+          "description": "Beats per minute tempo"
+        },
+        "masterVolume": {
+          "type": "number",
+          "description": "Master fader volume level"
+        },
+        "reverbMix": {
+          "type": "number",
+          "description": "Reverb send mix percentage"
+        },
+        "vocalEnhancement": {
+          "type": "boolean",
+          "description": "Whether the vocal high pass/bleed gate is active"
+        },
+        "tracks": {
+          "type": "array",
+          "description": "Mute, solo, volume list of tracks in this session"
+        },
+        "midiSequences": {
+          "type": "object",
+          "description": "Map of track IDs to lists of sequenced note objects"
+        },
+        "agentDialogue": {
+          "type": "array",
+          "description": "The discussion history of the backroom Nashville session agents"
+        },
+        "humMIDI": {
+          "type": "array",
+          "description": "List of extracted midi notes from the user's voice capture"
+        },
+        "createdAt": {
+          "type": "object",
+          "format": "timestamp",
+          "description": "Session creation server timestamp"
+        },
+        "updatedAt": {
+          "type": "object",
+          "format": "timestamp",
+          "description": "Session modification server timestamp"
+        }
+      },
+      "required": [
+        "name",
+        "ownerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/sessions/{sessionId}": {
+      "schema": "Session",
+      "description": "Contains user DAW sessions"
+    }
+  }
+}
